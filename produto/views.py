@@ -1,8 +1,8 @@
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.views import View
-from django.http import HttpResponse
 from . import models
+from perfil.models import Perfil
 from django.shortcuts import render, redirect, reverse, get_object_or_404 #type: ignore
 from django.contrib import messages
 
@@ -145,4 +145,29 @@ class Carrinho(View):
 
 class ResumoDaCompra(View):
     def get(self, *args, **kwargs):
-        return HttpResponse('Finalizar')
+        if not self.request.user.is_authenticated:
+            return redirect('perfil:criar')
+
+        perfil = Perfil.objects.filter(
+            usuario=self.request.user).exists()
+
+        if not perfil:
+            messages.error(
+                self.request,
+                'Usuário sem perfil.'
+            )
+            return redirect('perfil:criar')
+
+        if not self.request.session.get('carrinho'):
+            messages.error(
+                self.request,
+                'Carrinho vazio.'
+            )
+            return redirect('produto:lista')
+
+        contexto = {
+            'usuario': self.request.user,
+            'carrinho': self.request.session['carrinho'],
+        }
+
+        return render(self.request, 'produto/resumodacompra.html', contexto)

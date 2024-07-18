@@ -11,7 +11,7 @@ class Perfil(models.Model):
 
 
 
-    usuario = (models.ForeignKey(User, on_delete=models.CASCADE))
+    usuario = (models.OneToOneField(User, on_delete=models.CASCADE))
     idade = models.PositiveIntegerField()
     data_nascimento = models.DateField()
     cpf = models.CharField(max_length=11)

@@ -16,9 +16,9 @@
                     Conta
                 </a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                    <a class="dropdown-item" href="#">Meus pedidos</a>
-                    <a class="dropdown-item" href="#">Atualizar meus dados</a>
-                    <a class="dropdown-item" href="#">Sair</a>
+                    <a class="dropdown-item" href="{% url "produto:carrinho" %}">Meus pedidos</a>
+                    <a class="dropdown-item" href="{% url "perfil:criar" %}">Atualizar meus dados</a>
+                    <a class="dropdown-item" href="{% url "perfil:logout" %}">Sair</a>
                 </div>
             </li>
             {% else %}
