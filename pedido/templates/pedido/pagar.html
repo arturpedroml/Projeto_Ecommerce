@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Pagamento | {% endblock %}
+
+{% load omfilters %}
+{% load static %}
+
+{% block conteudo %}
+<div class="row">
+    <div class="col">
+        <h3>Escolha o método de pagamento</h3>
+        <form method="post" action="">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary btn-block btn-lg mt-4">Pagar</button>
+        </form>
+    </div>
+</div>
+
+{% include 'parciais/_pedido.html' %}
+
+{% endblock %}

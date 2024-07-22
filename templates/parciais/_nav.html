@@ -16,7 +16,7 @@
                     Conta
                 </a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                    <a class="dropdown-item" href="{% url "produto:carrinho" %}">Meus pedidos</a>
+                    <a class="dropdown-item" href="{% url "pedido:lista" %}">Meus pedidos</a>
                     <a class="dropdown-item" href="{% url "perfil:criar" %}">Atualizar meus dados</a>
                     <a class="dropdown-item" href="{% url "perfil:logout" %}">Sair</a>
                 </div>
@@ -48,7 +48,7 @@
 
 
         </ul>
-        <form class="form-inline my-2 my-lg-0" method="GET" action="#">
+        <form class="form-inline my-2 my-lg-0" method="GET" action="{% url "produto:busca" %}">
             <input name="termo" value="{{ request.GET.termo }}" class="form-control mr-sm-2" type="search"
                 placeholder="Busca" aria-label="Busca">
             <button class="btn btn-secondary my-2 my-sm-0" type="submit">Busca</button>

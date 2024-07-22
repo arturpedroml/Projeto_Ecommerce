@@ -6,28 +6,16 @@ from produto.models import Variacao
 from .models import Pedido, ItemPedido
 from utils import utils
 from .forms import MetodoPagamentoForm
-from utils.utils import create_pix_charge, generate_qr_code
-import requests
+from gerencianet import Gerencianet
+from dotenv import load_dotenv
+import os
+import qrcode
 import logging
-from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
-def get_neon_access_token():
-        url = "https://api.neon.com.br/oauth/token"  # Verifique a documentação para a URL correta
-        headers = {
-            "Content-Type": "application/x-www-form-urlencoded"
-        }
-        data = {
-            "grant_type": "client_credentials",
-            "client_id": settings.PIX_NEON_CLIENT_ID,
-            "client_secret": settings.PIX_NEON_CLIENT_SECRET,
-            "scope": "pix.read pix.write"
-        }
-        response = requests.post(url, headers=headers, data=data)
-        print(response.text)  # Adicione esta linha para depuração
-        response_data = response.json()
-        return response_data["access_token"]
+load_dotenv()
+
 
 class DispatchLoginRequiredMixin(View):
     def dispatch(self, *args, **kwargs):
@@ -49,23 +37,39 @@ class Pagar(DispatchLoginRequiredMixin, DetailView):
     context_object_name = 'pedido'
 
     def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        form = MetodoPagamentoForm(request.POST)
-        if form.is_valid():
-            metodo_pagamento = form.cleaned_data['metodo_pagamento']
-            if metodo_pagamento == 'pix':
-                try:
+            self.object = self.get_object()
+            form = MetodoPagamentoForm(request.POST)
+            if form.is_valid():
+                metodo_pagamento = form.cleaned_data['metodo_pagamento']
+                request.session['metodo_pagamento'] = metodo_pagamento
+                if metodo_pagamento == 'pix':
+                    chave_pix = "SUA_CHAVE_PIX"
                     valor = self.object.total # type: ignore
                     descricao = f"Pedido {self.object.pk}"
-                    pix_response = create_pix_charge(valor, descricao)
-                    qr_code_data = pix_response['loc']['qrcode']
-                    qr_code = generate_qr_code(qr_code_data)
-                    self.object.qr_code.save(f"qr_code_{self.object.pk}.png", qr_code, save=True) # type: ignore
+                    # Gerar cobrança Pix com Gerencianet
+                    client_id = os.getenv('GN_CLIENT_ID')
+                    client_secret = os.getenv('GN_CLIENT_SECRET')
+                    gn = Gerencianet({
+                        'client_id': client_id,
+                        'client_secret': client_secret,
+                        'sandbox': True  # Mude para False em produção
+                    })
+                    body = {
+                        "calendario": {"expiracao": 3600},
+                        "valor": {"original": f"{valor:.2f}"},
+                        "chave": chave_pix,
+                        "solicitacaoPagador": descricao,
+                    }
+                    response = gn.pix_create_immediate_charge({}, body) # type: ignore
+                    qrcode_data = response['loc']['qrcode']
+                    qr = qrcode.make(qrcode_data)
+                    qr_path = f"qrcodes/pix_{self.object.pk}.png"
+                    qr.save(qr_path)
                     return redirect(reverse('pedido:confirmacao_pagamento', kwargs={'pk': self.object.pk}))
-                except Exception as e:
-                    logger.error(f"Error processing Pix payment: {e}")
-                    messages.error(request, "Ocorreu um erro ao processar o pagamento. Por favor, tente novamente.")
-        return self.render_to_response(self.get_context_data(form=form))
+                else:
+                    # Outros métodos de pagamento
+                    pass
+            return self.render_to_response(self.get_context_data(form=form))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

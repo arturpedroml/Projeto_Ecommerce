@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 from django.contrib.messages import constants
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -155,3 +158,16 @@ SESSION_SAVE_EVERY_REQUEST = False
 
 # Serializer - Padrão JSON
 # SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
+
+# Gerencianet
+GN_CLIENT_ID = 'seu_client_id'
+GN_CLIENT_SECRET = 'seu_client_secret'
+GN_PIX_CERT = 'caminho/para/seu/certificado.pem'
+
+# Neon
+PIX_NEON_CLIENT_ID = os.getenv('PIX_NEON_CLIENT_ID')
+PIX_NEON_CLIENT_SECRET = os.getenv('PIX_NEON_CLIENT_SECRET')
+PIX_NEON_API_URL = os.getenv('PIX_NEON_API_URL')
+
+if not PIX_NEON_CLIENT_ID or not PIX_NEON_CLIENT_SECRET:
+    raise ValueError("As credenciais do PIX Neon não estão definidas no arquivo .env")

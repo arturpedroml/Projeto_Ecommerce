@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Confirmação de Pagamento | {% endblock %}
+
+{% block conteudo %}
+<div class="row">
+    <div class="col">
+        <h3>Pagamento Concluído</h3>
+        <p>Seu pagamento foi realizado com sucesso!</p>
+        <p>Detalhes do pedido:</p>
+        {% include 'parciais/_pedido.html' %}
+        {% if pedido.qr_code %}
+        <div class="row mt-4">
+            <div class="col">
+                <h3>QR Code para pagamento:</h3>
+                <img src="{{ pedido.qr_code.url }}" alt="QR Code para pagamento">
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
